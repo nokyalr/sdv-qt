@@ -70,8 +70,9 @@ void DataListPage::refresh()
         st->setForeground(QBrush(online ? QColor("#2E9E55") : QColor("#E5595B")));
 
         for (int i = 0; i < params.size(); ++i) {
+            const bool available = online && params[i].valid(*t);
             m_table->item(i + 1, 2 + c)->setText(
-                online ? QString::number(params[i].value(*t), 'f', params[i].decimals) : "-");
+                available ? QString::number(params[i].value(*t), 'f', params[i].decimals) : "-");
         }
     }
 }

@@ -3,7 +3,6 @@
 #include <QDateTime>
 #include <QMutexLocker>
 #include <QtEndian>
-#include <algorithm>
 #include <pcap.h>
 
 namespace {
@@ -20,42 +19,43 @@ QString macToString(const unsigned char *p)
         .toUpper();
 }
 
-// Layout payload (mulai byte 14, packed, little-endian) - sama dengan zone_data di firmware:
-//  0 version u8 | 1 seq u8 | 2 motor_current i16 (x10) | 4 erpm i32 | 8 duty i16 (x1000)
-// 10 temp_fet i16 (x10) | 12 temp_motor i16 (x10) | 14 v_in i16 (x10) | 16 current_in i16 (x10)
-// 18 steer_raw u16 | 20 steer_load u16 | 22 steer_temp u8 | 23 steer_volt u8 (x10)
-// 24 cmd_steer u8 | 25 cmd_motor u8
+// Layout payload sdv_cornerv3 (mulai byte 14, packed, little-endian, 23 byte):
+//  0 current_ref   u16  (current_ref_A + 40)
+//  2 current_motor u16  (motor_current_A + 100) * 10
+//  4 erpm          u32  erpm + 30000
+//  8 duty_cycle    u16  (duty + 1.0) * 1000
+// 10 current_in    u16  (batt_current_A + 100) * 10
+// 12 v_in          u16  voltage_V * 10
+// 14 steer_in      u16  target_deg100 + 13498
+// 16 steer         u16  actual_deg100 + 13498
+// 18 steer_stretch u8
+// 19 steer_speed   u8
+// 20 steer_current u8
+// 21 steer_temp    u8
+// 22 telemetry_valid u8
 bool parse(const unsigned char *d, int len, const QString &mac, ZcuTelemetry &t)
 {
-    if (len < 14 + 26) return false;
+    if (len < 14 + 23) return false;
     if (d[12] != 0x88 || d[13] != 0xB5) return false;
     const unsigned char *p = d + 14;
-    if (p[0] != 2) return false;                         // versi paket
 
-    auto i16 = [&](int o) { return qFromLittleEndian<qint16>(p + o); };
     auto u16 = [&](int o) { return qFromLittleEndian<quint16>(p + o); };
-    auto i32 = [&](int o) { return qFromLittleEndian<qint32>(p + o); };
+    auto u32 = [&](int o) { return qFromLittleEndian<quint32>(p + o); };
 
     t.mac = mac;
-    t.seq = p[1];
-    t.currentA = i16(2) / 10.0;
-    t.erpm = i32(4);
-    t.duty = i16(8) / 1000.0;
-    t.tempFet = i16(10) / 10.0;
-    t.tempMotor = i16(12) / 10.0;
-    t.vin = i16(14) / 10.0;
-    t.currentIn = i16(16) / 10.0;
-
-    t.steerRaw = u16(18);
-    // Sama dengan dxl_position_to_degree() di firmware: 204..785 -> 0..180 derajat
-    t.steerDeg = std::clamp((t.steerRaw - 204) * 180.0 / (785 - 204), 0.0, 180.0);
-
-    int loadRaw = u16(20);                               // bit 0-9 besar, bit 10 arah
-    t.steerLoadPct = (loadRaw & 0x3FF) * 0.097 * (((loadRaw >> 10) & 1) == 0 ? -1.0 : 1.0);
-    t.steerTemp = p[22];
-    t.steerVolt = p[23] / 10.0;
-    t.cmdSteer = p[24];
-    t.cmdMotor = p[25];
+    t.currentRef   = u16(0) - 40.0;                      // offset 40
+    t.currentMotor = u16(2) / 10.0 - 100.0;              // (val/10) - 100
+    t.erpm         = static_cast<int>(u32(4)) - 30000;   // offset 30000
+    t.duty         = u16(8) / 1000.0 - 1.0;              // (val/1000) - 1
+    t.currentIn    = u16(10) / 10.0 - 100.0;             // (val/10) - 100
+    t.vin          = u16(12) / 10.0;                      // val/10
+    t.steerIn      = (static_cast<int>(u16(14)) - 13498) / 100.0;  // deg
+    t.steerActual  = (static_cast<int>(u16(16)) - 13498) / 100.0;  // deg
+    t.steerStretch = p[18];
+    t.steerSpeed   = p[19];
+    t.steerCurrent = p[20];
+    t.steerTemp    = p[21];
+    t.steerTelemetryValid = p[22];
     t.timeMs = QDateTime::currentMSecsSinceEpoch();
     return true;
 }

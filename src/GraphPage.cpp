@@ -190,7 +190,7 @@ void GraphPanel::tick(qint64 nowMs, bool paused)
         const bool online = t && (nowMs - t->timeMs) < kOfflineMs;
 
         // Titik baru (X = detik relatif terhadap sekarang)
-        if (online)
+        if (online && p.valid(*t))
             m_points[i].append(QPointF(0.0, p.value(*t)));
 
         // Geser semua titik ke kiri dan buang yang sudah di luar jendela 60 s

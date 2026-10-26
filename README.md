@@ -20,7 +20,10 @@ Pasang Qt 6 (Widgets + Charts), Npcap, dan Npcap SDK. Set `PCAP_ROOT` ke folder 
 ## Menambah parameter
 Tambah satu baris di `src/Params.h`; Data List dan Graph ikut otomatis.
 
-## Format paket (harus sama dengan zone_data di firmware, versi 2, 26 byte, little-endian)
- 0 version u8 (=2) | 1 seq u8 | 2 motor_current i16 x10 | 4 erpm i32 | 8 duty i16 x1000
-10 temp_fet i16 x10 | 12 temp_motor i16 x10 | 14 v_in i16 x10 | 16 current_in i16 x10
-18 steer_raw u16 | 20 steer_load u16 | 22 steer_temp u8 | 23 steer_volt u8 x10 | 24 cmd_steer u8 | 25 cmd_motor u8
+## Format paket (harus sama dengan `zone_data` di firmware, 23 byte, little-endian)
+ 0 current_ref u16 (A + 40) | 2 current_motor u16 (A + 100) x10
+ 4 erpm u32 (ERPM + 30000) | 8 duty_cycle u16 (duty + 1) x1000
+10 current_in u16 (A + 100) x10 | 12 v_in u16 (V x10)
+14 steer_in u16 (sudut target x100 + 13498) | 16 steer u16 (sudut aktual x100 + 13498)
+18 steer_stretch u8 | 19 steer_speed u8 | 20 steer_current u8
+21 steer_temp u8 | 22 telemetry_valid u8 (bit 0..3: stretch, speed, current, temp)

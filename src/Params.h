@@ -11,26 +11,24 @@ struct Param {
     QString unit;
     int decimals;
     std::function<double(const ZcuTelemetry &)> value;
+    std::function<bool(const ZcuTelemetry &)> valid;
 };
 
 inline const QVector<Param> &parameters()
 {
     static const QVector<Param> p = {
-        {"Motor Current",   "A",   1, [](const ZcuTelemetry &t) { return t.currentA; }},
-        {"ERPM",            "rpm", 0, [](const ZcuTelemetry &t) { return double(t.erpm); }},
-        {"Duty Cycle",      "%",   1, [](const ZcuTelemetry &t) { return t.duty * 100.0; }},
-        {"FET Temp",        "°C",  1, [](const ZcuTelemetry &t) { return t.tempFet; }},
-        {"Motor Temp",      "°C",  1, [](const ZcuTelemetry &t) { return t.tempMotor; }},
-        {"Battery Voltage", "V",   1, [](const ZcuTelemetry &t) { return t.vin; }},
-        {"Battery Current", "A",   1, [](const ZcuTelemetry &t) { return t.currentIn; }},
-        {"Steer Angle",     "°",   1, [](const ZcuTelemetry &t) { return t.steerDeg; }},
-        {"Steer (raw)",     "",    0, [](const ZcuTelemetry &t) { return double(t.steerRaw); }},
-        {"Steer Load",      "%",   1, [](const ZcuTelemetry &t) { return t.steerLoadPct; }},
-        {"Servo Temp",      "°C",  0, [](const ZcuTelemetry &t) { return double(t.steerTemp); }},
-        {"Servo Voltage",   "V",   1, [](const ZcuTelemetry &t) { return t.steerVolt; }},
-        {"Cmd Steer (VCU)", "",    0, [](const ZcuTelemetry &t) { return double(t.cmdSteer); }},
-        {"Cmd Motor (VCU)", "",    0, [](const ZcuTelemetry &t) { return double(t.cmdMotor); }},
-        {"Packet Seq",      "",    0, [](const ZcuTelemetry &t) { return double(t.seq); }},
+        {"Current Ref",     "A",   1, [](const ZcuTelemetry &t) { return t.currentRef; }, [](const ZcuTelemetry &) { return true; }},
+        {"Motor Current",   "A",   1, [](const ZcuTelemetry &t) { return t.currentMotor; }, [](const ZcuTelemetry &) { return true; }},
+        {"ERPM",            "rpm", 0, [](const ZcuTelemetry &t) { return double(t.erpm); }, [](const ZcuTelemetry &) { return true; }},
+        {"Duty Cycle",      "%",   1, [](const ZcuTelemetry &t) { return t.duty * 100.0; }, [](const ZcuTelemetry &) { return true; }},
+        {"Battery Current", "A",   1, [](const ZcuTelemetry &t) { return t.currentIn; }, [](const ZcuTelemetry &) { return true; }},
+        {"Battery Voltage", "V",   1, [](const ZcuTelemetry &t) { return t.vin; }, [](const ZcuTelemetry &) { return true; }},
+        {"Steer Target",    "°",   2, [](const ZcuTelemetry &t) { return t.steerIn; }, [](const ZcuTelemetry &) { return true; }},
+        {"Steer Actual",    "°",   2, [](const ZcuTelemetry &t) { return t.steerActual; }, [](const ZcuTelemetry &) { return true; }},
+        {"Servo Stretch",   "",    0, [](const ZcuTelemetry &t) { return t.steerStretch; }, [](const ZcuTelemetry &t) { return t.steerTelemetryValid & 0x01; }},
+        {"Servo Speed",     "",    0, [](const ZcuTelemetry &t) { return t.steerSpeed; }, [](const ZcuTelemetry &t) { return t.steerTelemetryValid & 0x02; }},
+        {"Servo Current",   "",    0, [](const ZcuTelemetry &t) { return t.steerCurrent; }, [](const ZcuTelemetry &t) { return t.steerTelemetryValid & 0x04; }},
+        {"Servo Temp Raw",  "",    0, [](const ZcuTelemetry &t) { return t.steerTemp; }, [](const ZcuTelemetry &t) { return t.steerTelemetryValid & 0x08; }},
     };
     return p;
 }
