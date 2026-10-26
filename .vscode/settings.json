@@ -1,0 +1,10 @@
+{
+  "cmake.cmakePath": "C:/Qt/Tools/CMake_64/bin/cmake.exe",
+  "cmake.configureSettings": {
+    "CMAKE_PREFIX_PATH": "C:/Qt/6.11.2/mingw_64"
+  },
+  "cmake.environment": {
+    "PATH": "C:/Qt/6.11.2/mingw_64/bin;C:/Qt/Tools/mingw1310_64/bin;C:/Qt/Tools/Ninja;${env:PATH}"
+  },
+  "cmake.generator": "Ninja"
+}

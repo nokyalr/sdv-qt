@@ -1,0 +1,20 @@
+# ninja log v6
+26	1413	8141854920682232	C:/Users/nokya/Documents/Kuliah/pa/stm32/sdv_cornerv2/vista/build/CReATEVISTA_autogen/timestamp	b5366964037e37c2
+26	1413	8141854920682232	CReATEVISTA_autogen/timestamp	b5366964037e37c2
+26	1413	8141854920682232	C:/Users/nokya/Documents/Kuliah/pa/stm32/sdv_cornerv2/vista/build/CReATEVISTA_autogen/mocs_compilation.cpp	b5366964037e37c2
+26	1413	8141854920682232	CReATEVISTA_autogen/mocs_compilation.cpp	b5366964037e37c2
+7392	8615	8141854981080754	CReATEVISTA.exe	c17ff1c10c4387b7
+8	724	8147077700082963	sdv-qt_autogen/timestamp	19ac30cc68a37f71
+8	724	8147077700082963	sdv-qt_autogen/mocs_compilation.cpp	19ac30cc68a37f71
+8	724	8147077700082963	C:/Users/nokya/Documents/Kuliah/pa/qt/sdv-qt/build/sdv-qt_autogen/timestamp	19ac30cc68a37f71
+8	724	8147077700082963	C:/Users/nokya/Documents/Kuliah/pa/qt/sdv-qt/build/sdv-qt_autogen/mocs_compilation.cpp	19ac30cc68a37f71
+738	2989	8147077700663281	CMakeFiles/sdv-qt.dir/src/AppState.cpp.obj	6397335d8666658b
+729	3217	8147077700567284	CMakeFiles/sdv-qt.dir/sdv-qt_autogen/mocs_compilation.cpp.obj	a80635270539c5dd
+733	3233	8147077700609133	CMakeFiles/sdv-qt.dir/src/main.cpp.obj	c6e18ecd0597d8dd
+752	3471	8147077700801478	CMakeFiles/sdv-qt.dir/src/MainWindow.cpp.obj	c9956965f0a511c9
+748	3915	8147077700760592	CMakeFiles/sdv-qt.dir/src/SetupWindow.cpp.obj	20ffff8302dd9bea
+757	3991	8147077700855273	CMakeFiles/sdv-qt.dir/src/DataListPage.cpp.obj	ccc9e4c285bac934
+762	4419	8147077700895188	CMakeFiles/sdv-qt.dir/src/GraphPage.cpp.obj	8b25c353675dbca5
+767	4572	8147077700944917	CMakeFiles/sdv-qt.dir/src/DataLoggingPage.cpp.obj	9dff97d3f1c8738f
+743	4623	8147077700709153	CMakeFiles/sdv-qt.dir/src/RawEthMonitor.cpp.obj	7531319f4e6b13
+4624	5772	8147077739508091	sdv-qt.exe	8aabaadff5184683

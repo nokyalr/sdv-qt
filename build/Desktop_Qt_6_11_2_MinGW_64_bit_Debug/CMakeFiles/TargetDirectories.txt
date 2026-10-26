@@ -1,0 +1,5 @@
+C:/Users/nokya/Documents/Kuliah/pa/stm32/sdv_cornerv2/vista/build/Desktop_Qt_6_11_2_MinGW_64_bit_Debug/CMakeFiles/CReATEVISTA.dir
+C:/Users/nokya/Documents/Kuliah/pa/stm32/sdv_cornerv2/vista/build/Desktop_Qt_6_11_2_MinGW_64_bit_Debug/CMakeFiles/edit_cache.dir
+C:/Users/nokya/Documents/Kuliah/pa/stm32/sdv_cornerv2/vista/build/Desktop_Qt_6_11_2_MinGW_64_bit_Debug/CMakeFiles/rebuild_cache.dir
+C:/Users/nokya/Documents/Kuliah/pa/stm32/sdv_cornerv2/vista/build/Desktop_Qt_6_11_2_MinGW_64_bit_Debug/CMakeFiles/CReATEVISTA_autogen_timestamp_deps.dir
+C:/Users/nokya/Documents/Kuliah/pa/stm32/sdv_cornerv2/vista/build/Desktop_Qt_6_11_2_MinGW_64_bit_Debug/CMakeFiles/CReATEVISTA_autogen.dir
