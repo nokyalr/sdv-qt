@@ -4,6 +4,7 @@
 
 #include <QBrush>
 #include <QDateTime>
+#include <QDir>
 #include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -22,9 +23,29 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
+#ifdef Q_OS_UNIX
+#include <pwd.h>
+#endif
+
 namespace {
 constexpr int  kOfflineMs  = 500;
 constexpr int  kTickMs     = 100;   // tulis CSV tiap 100 ms (10 Hz)
+
+QString defaultLogDirectory()
+{
+#ifdef Q_OS_UNIX
+    // When started with sudo, Qt sees /root as HOME. Use the invoking user's home.
+    const QByteArray sudoUser = qgetenv("SUDO_USER");
+    if (!sudoUser.isEmpty()) {
+        if (const passwd *user = getpwnam(sudoUser.constData()); user && user->pw_dir) {
+            const QDir userHome(QString::fromLocal8Bit(user->pw_dir));
+            const QString documents = userHome.filePath("Documents");
+            return userHome.exists("Documents") ? documents : userHome.path();
+        }
+    }
+#endif
+    return QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+}
 }
 
 DataLoggingPage::DataLoggingPage(QWidget *parent) : QWidget(parent)
@@ -49,10 +70,10 @@ DataLoggingPage::DataLoggingPage(QWidget *parent) : QWidget(parent)
     m_pathEdit = new QLineEdit;
     m_pathEdit->setPlaceholderText("Pilih lokasi file CSV...");
     // Default: Dokumen / log_<tanggal>.csv
-    const QString defPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)
-                            + "/sdv-qt_log_"
-                            + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss")
-                            + ".csv";
+    const QString fileName = "sdv-qt_log_"
+                             + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss")
+                             + ".csv";
+    const QString defPath = QDir(defaultLogDirectory()).filePath(fileName);
     m_pathEdit->setText(defPath);
 
     m_browseBtn = new QPushButton("Browse…");

@@ -64,3 +64,9 @@
 18	4038	8147103368892150	CMakeFiles/sdv-qt.dir/src/RawEthMonitor.cpp.obj	7531319f4e6b13
 41	4212	8147103369115030	CMakeFiles/sdv-qt.dir/src/DataLoggingPage.cpp.obj	9dff97d3f1c8738f
 9	1783	8147103525392698	sdv-qt.exe	8aabaadff5184683
+10	130	8147242007175935	sdv-qt_autogen/timestamp	19ac30cc68a37f71
+10	130	8147242007175935	sdv-qt_autogen/mocs_compilation.cpp	19ac30cc68a37f71
+10	130	8147242007175935	C:/Users/nokya/Documents/Kuliah/pa/qt/sdv-qt/build/sdv-qt_autogen/timestamp	19ac30cc68a37f71
+10	130	8147242007175935	C:/Users/nokya/Documents/Kuliah/pa/qt/sdv-qt/build/sdv-qt_autogen/mocs_compilation.cpp	19ac30cc68a37f71
+131	2897	8147242008382863	CMakeFiles/sdv-qt.dir/src/DataLoggingPage.cpp.obj	9dff97d3f1c8738f
+2897	4250	8147242036050013	sdv-qt.exe	8aabaadff5184683
