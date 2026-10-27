@@ -636,6 +636,7 @@ sdv-qt_autogen/timestamp: \
 	C:/Users/nokya/Documents/Kuliah/pa/qt/sdv-qt/src/RawEthMonitor.h \
 	C:/Users/nokya/Documents/Kuliah/pa/qt/sdv-qt/src/SetupWindow.cpp \
 	C:/Users/nokya/Documents/Kuliah/pa/qt/sdv-qt/src/SetupWindow.h \
+	C:/Users/nokya/Documents/Kuliah/pa/qt/sdv-qt/src/VcuTelemetry.h \
 	C:/Users/nokya/Documents/Kuliah/pa/qt/sdv-qt/src/ZcuTelemetry.h \
 	C:/Users/nokya/Documents/Kuliah/pa/qt/sdv-qt/src/main.cpp \
 	C:/Qt/Tools/CMake_64/bin/cmake.exe

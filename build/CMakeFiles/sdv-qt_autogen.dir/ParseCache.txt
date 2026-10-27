@@ -1907,3 +1907,4 @@ C:/Users/nokya/Documents/Kuliah/pa/qt/sdv-qt/src/GraphPage.cpp
 C:/Users/nokya/Documents/Kuliah/pa/qt/sdv-qt/src/MainWindow.cpp
 C:/Users/nokya/Documents/Kuliah/pa/qt/sdv-qt/src/main.cpp
 C:/Users/nokya/Documents/Kuliah/pa/qt/sdv-qt/src/SetupWindow.cpp
+C:/Users/nokya/Documents/Kuliah/pa/qt/sdv-qt/src/VcuTelemetry.h

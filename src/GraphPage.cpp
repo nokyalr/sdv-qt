@@ -12,6 +12,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QStringList>
 #include <QTimer>
 #include <QVBoxLayout>
 #include <QWheelEvent>
@@ -63,6 +64,9 @@ GraphPanel::GraphPanel(QWidget *parent) : QWidget(parent)
     m_paramBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     m_paramBox->setMinimumWidth(90);
     for (const Param &p : parameters()) m_paramBox->addItem(p.name);
+    m_remoteParamOffset = parameters().size();
+    m_paramBox->addItems({"Steer Remote Raw", "Steer Remote Map",
+                          "Throttle Remote Raw", "Throttle Remote Map"});
     row1->addWidget(m_paramBox, 1);
 
     m_autoChk = new QCheckBox("Auto scale");
@@ -158,10 +162,26 @@ GraphPanel::GraphPanel(QWidget *parent) : QWidget(parent)
 
 void GraphPanel::onParamChanged()
 {
-    const Param &p = parameters().at(m_paramBox->currentIndex());
-    const QString yTitle = p.unit.isEmpty()
-                               ? p.name
-                               : QString("%1 (%2)").arg(p.name, p.unit);
+    const int index = m_paramBox->currentIndex();
+    const bool remote = index >= m_remoteParamOffset;
+    QString yTitle;
+    if (remote) {
+        yTitle = m_paramBox->currentText()
+                 + (index == m_remoteParamOffset || index == m_remoteParamOffset + 2
+                        ? " (us)" : " (map)");
+        for (int i = 0; i < 4; ++i) {
+            m_corner[i]->setVisible(i == 0);
+            if (i == 0) m_corner[i]->setText("Remote");
+        }
+    } else {
+        const Param &p = parameters().at(index);
+        yTitle = p.unit.isEmpty() ? p.name : QString("%1 (%2)").arg(p.name, p.unit);
+        const QStringList labels = AppState::cornerLabels();
+        for (int i = 0; i < 4; ++i) {
+            m_corner[i]->setVisible(true);
+            m_corner[i]->setText(labels.at(i));
+        }
+    }
     m_axisY->setTitleText(yTitle);
     clearData();
 }
@@ -179,19 +199,41 @@ void GraphPanel::tick(qint64 nowMs, bool paused)
     if (paused) return;
 
     auto &app             = AppState::instance();
-    const Param &p        = parameters().at(m_paramBox->currentIndex());
+    const int paramIndex = m_paramBox->currentIndex();
+    const bool remote = paramIndex >= m_remoteParamOffset;
+    const Param *p = remote ? nullptr : &parameters().at(paramIndex);
     const qint64 startMs  = nowMs - kWindowMs;
 
     double minV = std::numeric_limits<double>::infinity();
     double maxV = -std::numeric_limits<double>::infinity();
 
     for (int i = 0; i < 4; ++i) {
+        if (remote && i > 0) {
+            m_points[i].clear();
+            m_series[i]->clear();
+            m_series[i]->setVisible(false);
+            continue;
+        }
         const auto t      = app.monitor.latest(app.cornerMac(i));
         const bool online = t && (nowMs - t->timeMs) < kOfflineMs;
 
         // Titik baru (X = detik relatif terhadap sekarang)
-        if (online && p.valid(*t))
-            m_points[i].append(QPointF(0.0, p.value(*t)));
+        if (remote) {
+            const auto vcu = app.monitor.latestVcu(app.vcuMac());
+            const bool vcuOnline = vcu && (nowMs - vcu->timeMs) < kOfflineMs;
+            if (vcuOnline) {
+                double value = 0;
+                switch (paramIndex - m_remoteParamOffset) {
+                case 0: value = vcu->steerRemoteRaw; break;
+                case 1: value = vcu->steerRemoteMap; break;
+                case 2: value = vcu->throttleRemoteRaw; break;
+                case 3: value = vcu->throttleRemoteMap; break;
+                }
+                m_points[i].append(QPointF(0.0, value));
+            }
+        } else if (online && p->valid(*t)) {
+            m_points[i].append(QPointF(0.0, p->value(*t)));
+        }
 
         // Geser semua titik ke kiri dan buang yang sudah di luar jendela 60 s
         const double shiftSec = 0.1;   // 100 ms per tick
@@ -203,6 +245,7 @@ void GraphPanel::tick(qint64 nowMs, bool paused)
         if (drop > 0) m_points[i].remove(0, drop);
 
         m_series[i]->replace(m_points[i]);
+        m_series[i]->setName(remote ? "Remote" : AppState::cornerLabels().at(i));
         m_series[i]->setVisible(m_corner[i]->isChecked());
 
         if (m_corner[i]->isChecked()) {
@@ -281,38 +324,34 @@ GraphPage::GraphPage(QWidget *parent) : QWidget(parent)
     auto *clearBtn = new QPushButton("Clear All");
     clearBtn->setFixedWidth(80);
     connect(clearBtn, &QPushButton::clicked, this, [this] {
-        for (int i = 0; i < 4; ++i)
+        for (int i = 0; i < 2; ++i)
             m_panel[i]->clearData();
     });
     headerLayout->addWidget(clearBtn);
 
     root->addLayout(headerLayout);
 
-    // Empat panel grafik (2 kiri × 2 kanan)
-    for (int i = 0; i < 4; ++i)
+    // Dua panel grafik dalam satu baris (kiri dan kanan).
+    for (int i = 0; i < 2; ++i)
         m_panel[i] = new GraphPanel(this);
 
     // Default parameter per panel
-    const int defaultIdx[4] = {0, 1, 2, 3};   // Motor Current, ERPM, Duty Cycle, FET Temp
-    for (int i = 1; i < 4; ++i) {
+    const int defaultIdx[2] = {0, 1};
+    for (int i = 1; i < 2; ++i) {
         auto *cb = m_panel[i]->findChild<QComboBox*>();
         if (cb && cb->count() > defaultIdx[i])
             cb->setCurrentIndex(defaultIdx[i]);
     }
 
-    // Grid 2 kolom
+    // Grid satu baris dengan dua kolom.
     auto *grid = new QWidget;
     auto *gridLayout = new QGridLayout(grid);
     gridLayout->setContentsMargins(0, 0, 0, 0);
     gridLayout->setSpacing(6);
-    gridLayout->addWidget(m_panel[0], 0, 0);   // kiri atas
-    gridLayout->addWidget(m_panel[1], 0, 1);   // kanan atas
-    gridLayout->addWidget(m_panel[2], 1, 0);   // kiri bawah
-    gridLayout->addWidget(m_panel[3], 1, 1);   // kanan bawah
+    gridLayout->addWidget(m_panel[0], 0, 0);   // kiri
+    gridLayout->addWidget(m_panel[1], 0, 1);   // kanan
     gridLayout->setColumnStretch(0, 1);
     gridLayout->setColumnStretch(1, 1);
-    gridLayout->setRowStretch(0, 1);
-    gridLayout->setRowStretch(1, 1);
     root->addWidget(grid, 1);
 
     // Timer bersama
@@ -325,6 +364,6 @@ void GraphPage::tick()
 {
     const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
     const bool paused  = m_pauseChk && m_pauseChk->isChecked();
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < 2; ++i)
         m_panel[i]->tick(nowMs, paused);
 }

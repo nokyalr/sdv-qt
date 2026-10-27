@@ -41,9 +41,10 @@ private:
     QList<QPointF> m_points[4];
     QValueAxis  *m_axisX     = nullptr;
     QValueAxis  *m_axisY     = nullptr;
+    int m_remoteParamOffset = -1;
 };
 
-// Halaman Graph: empat panel (2 kiri × 2 kanan), sumbu X = detik relatif
+// Halaman Graph: dua panel (kiri dan kanan), sumbu X = detik relatif
 class GraphPage : public QWidget
 {
     Q_OBJECT
@@ -54,6 +55,6 @@ private:
     void tick();
 
     QCheckBox  *m_pauseChk = nullptr;
-    GraphPanel *m_panel[4] = {};
+    GraphPanel *m_panel[2] = {};
     QTimer     *m_timer    = nullptr;
 };

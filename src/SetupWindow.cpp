@@ -139,6 +139,7 @@ void SetupWindow::resetToDefault()
 void SetupWindow::testConnection()
 {
     auto &app = AppState::instance();
+    app.monitor.setVcuMac(m_rows.last().mac->text());
     QString err;
     if (!app.monitor.start(m_adapterBox->currentData().toString(), &err)) {
         QMessageBox::critical(this, "Test Connection", "Gagal membuka adapter jaringan:\n" + err);
@@ -165,6 +166,7 @@ void SetupWindow::saveAndContinue()
     app.adapterDisplay = m_adapterBox->currentText();
     app.macs.clear();
     for (const Row &r : m_rows) app.macs[r.name] = r.mac->text();
+    app.monitor.setVcuMac(app.vcuMac());
     app.save();
     emit continueRequested();      // monitor tidak dihentikan, dipakai terus oleh MainWindow
 }

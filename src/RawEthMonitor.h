@@ -6,6 +6,7 @@
 #include <atomic>
 #include <optional>
 #include <thread>
+#include "VcuTelemetry.h"
 #include "ZcuTelemetry.h"
 
 struct AdapterInfo {
@@ -24,11 +25,13 @@ public:
 
     bool start(const QString &adapterName, QString *error = nullptr);
     void stop();
+    void setVcuMac(const QString &mac);
     QString currentAdapter() const { return m_adapter; }
 
     void clearSeen();
     bool wasSeen(const QString &mac) const;
     std::optional<ZcuTelemetry> latest(const QString &mac) const;
+    std::optional<VcuTelemetry> latestVcu(const QString &mac) const;
 
 private:
     void handlePacket(const unsigned char *data, int len);
@@ -40,4 +43,6 @@ private:
     mutable QMutex m_mutex;
     QHash<QString, qint64> m_seen;
     QHash<QString, ZcuTelemetry> m_latest;
+    QHash<QString, VcuTelemetry> m_latestVcu;
+    QString m_vcuMac = "00:14:2D:E3:6B:2D";
 };

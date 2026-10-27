@@ -22,6 +22,7 @@ public:
 
     // MAC corner ke-i (dari Setup, atau default)
     QString cornerMac(int i) const;
+    QString vcuMac() const;
 
     void load();    // baca dari QSettings
     void save();    // simpan ke QSettings

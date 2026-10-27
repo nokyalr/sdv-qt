@@ -64,6 +64,12 @@ bool parse(const unsigned char *d, int len, const QString &mac, ZcuTelemetry &t)
 
 RawEthMonitor::~RawEthMonitor() { stop(); }
 
+void RawEthMonitor::setVcuMac(const QString &mac)
+{
+    QMutexLocker lock(&m_mutex);
+    m_vcuMac = mac.trimmed().toUpper();
+}
+
 QList<AdapterInfo> RawEthMonitor::listAdapters(QString *error)
 {
     QList<AdapterInfo> out;
@@ -135,7 +141,19 @@ void RawEthMonitor::handlePacket(const unsigned char *data, int len)
 
     QMutexLocker lock(&m_mutex);
     m_seen[src] = now;
-    if (ok) m_latest[src] = t;
+    if (ok && src != m_vcuMac) {
+        m_latest[src] = t;
+    } else if (src == m_vcuMac && len >= 14 + 8) {
+        VcuTelemetry vcu;
+        vcu.steerRemoteRaw = qFromLittleEndian<quint32>(data + 14);
+        vcu.throttleRemoteRaw = qFromLittleEndian<quint32>(data + 18);
+        vcu.steerRemoteMap = (static_cast<double>(vcu.steerRemoteRaw) - 1000.0)
+                             * (-450.0 - 450.0) / (2217.0 - 1000.0) + 450.0;
+        vcu.throttleRemoteMap = (static_cast<double>(vcu.throttleRemoteRaw) - 1003.0)
+                                * 200.0 / (2002.0 - 1003.0);
+        vcu.timeMs = now;
+        m_latestVcu[src] = vcu;
+    }
 }
 
 void RawEthMonitor::clearSeen()
@@ -155,5 +173,13 @@ std::optional<ZcuTelemetry> RawEthMonitor::latest(const QString &mac) const
     QMutexLocker lock(&m_mutex);
     auto it = m_latest.constFind(mac.trimmed().toUpper());
     if (it == m_latest.constEnd()) return std::nullopt;
+    return *it;
+}
+
+std::optional<VcuTelemetry> RawEthMonitor::latestVcu(const QString &mac) const
+{
+    QMutexLocker lock(&m_mutex);
+    auto it = m_latestVcu.constFind(mac.trimmed().toUpper());
+    if (it == m_latestVcu.constEnd()) return std::nullopt;
     return *it;
 }

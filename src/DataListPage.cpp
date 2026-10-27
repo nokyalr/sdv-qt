@@ -9,6 +9,7 @@
 #include <QTableWidget>
 #include <QTimer>
 #include <QVBoxLayout>
+#include <QStringList>
 
 namespace {
 constexpr int kOfflineMs = 500;   // corner dianggap Offline kalau tak ada paket selama 500 ms
@@ -25,8 +26,10 @@ DataListPage::DataListPage(QWidget *parent) : QWidget(parent)
     layout->addWidget(title);
 
     const auto &params = parameters();
-    m_table = new QTableWidget(params.size() + 1, 6);       // +1 untuk baris Status
-    m_table->setHorizontalHeaderLabels({"Parameter", "Unit", "ZCU FL", "ZCU FR", "ZCU RL", "ZCU RR"});
+    constexpr int remoteRows = 4;
+    m_table = new QTableWidget(params.size() + 1 + remoteRows, 7);
+    m_table->setHorizontalHeaderLabels(
+        {"Parameter", "Unit", "ZCU FL", "ZCU FR", "ZCU RL", "ZCU RR", "Remote"});
     m_table->verticalHeader()->setVisible(false);
     m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_table->setSelectionMode(QAbstractItemView::NoSelection);
@@ -38,7 +41,7 @@ DataListPage::DataListPage(QWidget *parent) : QWidget(parent)
     auto addLabel = [&](int row, const QString &name, const QString &unit) {
         m_table->setItem(row, 0, new QTableWidgetItem(name));
         m_table->setItem(row, 1, new QTableWidgetItem(unit));
-        for (int c = 2; c < 6; ++c) {
+        for (int c = 2; c < 7; ++c) {
             auto *it = new QTableWidgetItem("-");
             it->setTextAlignment(Qt::AlignCenter);
             m_table->setItem(row, c, it);
@@ -46,6 +49,13 @@ DataListPage::DataListPage(QWidget *parent) : QWidget(parent)
     };
     addLabel(0, "Status", "");
     for (int i = 0; i < params.size(); ++i) addLabel(i + 1, params[i].name, params[i].unit);
+
+    const QStringList remoteNames = {
+        "Steer Remote Raw", "Steer Remote Map",
+        "Throttle Remote Raw", "Throttle Remote Map"
+    };
+    for (int i = 0; i < remoteRows; ++i)
+        addLabel(params.size() + 1 + i, remoteNames.at(i), "");
 
     layout->addWidget(m_table, 1);
 
@@ -74,5 +84,20 @@ void DataListPage::refresh()
             m_table->item(i + 1, 2 + c)->setText(
                 available ? QString::number(params[i].value(*t), 'f', params[i].decimals) : "-");
         }
+    }
+
+    const auto vcu = app.monitor.latestVcu(app.vcuMac());
+    const bool vcuOnline = vcu && (now - vcu->timeMs) < kOfflineMs;
+    const QStringList values = vcuOnline
+                                   ? QStringList{
+                                         QString::number(vcu->steerRemoteRaw),
+                                         QString::number(vcu->steerRemoteMap, 'f', 2),
+                                         QString::number(vcu->throttleRemoteRaw),
+                                         QString::number(vcu->throttleRemoteMap, 'f', 2)}
+                                   : QStringList{"-", "-", "-", "-"};
+    for (int i = 0; i < values.size(); ++i) {
+        auto *value = m_table->item(params.size() + 1 + i, 6);
+        value->setText(values.at(i));
+        value->setForeground(QBrush(vcuOnline ? QColor("#2E9E55") : QColor("#E5595B")));
     }
 }

@@ -32,6 +32,11 @@ QString AppState::cornerMac(int i) const
     return macs.value(cornerKeys().at(i), defaultMacs().at(i)).trimmed().toUpper();
 }
 
+QString AppState::vcuMac() const
+{
+    return macs.value("VCU", "00:14:2D:E3:6B:2D").trimmed().toUpper();
+}
+
 void AppState::load()
 {
     QSettings s("sdv-qt", "sdv-qt");

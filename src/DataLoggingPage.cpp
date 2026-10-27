@@ -129,12 +129,14 @@ DataLoggingPage::DataLoggingPage(QWidget *parent) : QWidget(parent)
     const auto &params = parameters();
     const auto &corners = AppState::cornerLabels();
 
-    // Baris = corner (FL/FR/RL/RR), Kolom = timestamp + semua parameter
-    m_preview = new QTableWidget(4, params.size() + 1);
+    // Baris = corner/VCU, kolom = device + parameter atau data VCU.
+    m_preview = new QTableWidget(5, params.size() + 5);
     QStringList headers;
     headers << "Corner";
     for (const Param &p : params)
         headers << (p.unit.isEmpty() ? p.name : QString("%1 (%2)").arg(p.name, p.unit));
+    headers << "Steer Remote Raw (us)" << "Throttle Remote Raw (us)"
+            << "Steer Remote Map" << "Throttle Remote Map";
     m_preview->setHorizontalHeaderLabels(headers);
     m_preview->verticalHeader()->setVisible(false);
     m_preview->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -143,10 +145,10 @@ DataLoggingPage::DataLoggingPage(QWidget *parent) : QWidget(parent)
     m_preview->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     m_preview->horizontalHeader()->setStretchLastSection(true);
 
-    for (int r = 0; r < 4; ++r) {
-        m_preview->setItem(r, 0, new QTableWidgetItem(corners.at(r)));
+    for (int r = 0; r < 5; ++r) {
+        m_preview->setItem(r, 0, new QTableWidgetItem(r < 4 ? corners.at(r) : "Remote"));
         m_preview->item(r, 0)->setTextAlignment(Qt::AlignCenter);
-        for (int c = 1; c <= params.size(); ++c) {
+        for (int c = 1; c < m_preview->columnCount(); ++c) {
             auto *it = new QTableWidgetItem("-");
             it->setTextAlignment(Qt::AlignCenter);
             m_preview->setItem(r, c, it);
@@ -227,6 +229,8 @@ void DataLoggingPage::writeHeader()
     ts << "Timestamp_ms,Corner";
     for (const Param &p : parameters())
         ts << "," << (p.unit.isEmpty() ? p.name : p.name + " (" + p.unit + ")");
+    ts << ",Steer Remote Raw (us),Throttle Remote Raw (us)"
+       << ",Steer Remote Map,Throttle Remote Map";
     ts << "\n";
 }
 
@@ -249,7 +253,19 @@ void DataLoggingPage::writeRow(qint64 nowMs)
         ts << nowMs << "," << corners.at(i);
         for (const Param &p : params)
             ts << "," << QString::number(p.value(*t), 'f', p.decimals);
+        ts << ",,,,";
         ts << "\n";
+        ++m_rowCount;
+    }
+
+    const auto vcu = app.monitor.latestVcu(app.vcuMac());
+    if (vcu && (nowMs - vcu->timeMs) < kOfflineMs) {
+        ts << nowMs << ",Remote";
+        for (const Param &p : params)
+            ts << ",";
+        ts << "," << vcu->steerRemoteRaw << "," << vcu->throttleRemoteRaw
+           << "," << QString::number(vcu->steerRemoteMap, 'f', 2)
+           << "," << QString::number(vcu->throttleRemoteMap, 'f', 2) << "\n";
         ++m_rowCount;
     }
 }
@@ -275,6 +291,21 @@ void DataLoggingPage::tick()
                 online ? QString::number(params[c].value(*t), 'f', params[c].decimals) : "-");
         }
     }
+
+    const auto vcu = app.monitor.latestVcu(app.vcuMac());
+    const bool vcuOnline = vcu && (nowMs - vcu->timeMs) < kOfflineMs;
+    m_preview->item(4, 0)->setForeground(
+        QBrush(vcuOnline ? QColor("#2E9E55") : QColor("#E5595B")));
+    for (int c = 1; c <= params.size(); ++c)
+        m_preview->item(4, c)->setText("-");
+    m_preview->item(4, params.size() + 1)->setText(
+        vcuOnline ? QString::number(vcu->steerRemoteRaw) : "-");
+    m_preview->item(4, params.size() + 2)->setText(
+        vcuOnline ? QString::number(vcu->throttleRemoteRaw) : "-");
+    m_preview->item(4, params.size() + 3)->setText(
+        vcuOnline ? QString::number(vcu->steerRemoteMap, 'f', 2) : "-");
+    m_preview->item(4, params.size() + 4)->setText(
+        vcuOnline ? QString::number(vcu->throttleRemoteMap, 'f', 2) : "-");
 
     // --- Tulis ke CSV jika sedang logging ---
     if (m_logging) {

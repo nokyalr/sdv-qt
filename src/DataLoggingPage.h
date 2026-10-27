@@ -7,7 +7,7 @@ class QPushButton;
 class QTableWidget;
 class QTimer;
 
-// Halaman Data Logging: rekam semua parameter ZCU ke file CSV
+// Halaman Data Logging: rekam semua parameter ZCU dan data pulse VCU ke file CSV
 class DataLoggingPage : public QWidget
 {
     Q_OBJECT

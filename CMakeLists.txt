@@ -30,6 +30,7 @@ message(STATUS "pcap library: ${PCAP_LIBRARY}")
 add_executable(sdv-qt WIN32
     src/main.cpp
     src/ZcuTelemetry.h
+    src/VcuTelemetry.h
     src/Params.h
     src/AppState.h
     src/AppState.cpp
