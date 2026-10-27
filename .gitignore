@@ -1,0 +1,37 @@
+# Build directories
+build/
+build-*/
+cmake-build-*/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+CMakeConfigureLog.yaml
+cmake_install.cmake
+*.ninja
+.ninja_*
+compile_commands.json
+
+# Qt generated files / artifacts
+*.obj
+*.o
+*.a
+*.lib
+*.dll
+*.exe
+*.moc
+moc_*.cpp
+moc_*.cpp.d
+qrc_*.cpp
+ui_*.h
+*_autogen/
+
+# Qt Creator specific
+*.autosave
+*.user
+*.user.*
+.qtcreator/
+
+# Cache directories
+.cache/
+
