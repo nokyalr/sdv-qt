@@ -41,6 +41,7 @@ void AppState::load()
 {
     QSettings s("sdv-qt", "sdv-qt");
     adapterName = s.value("adapter").toString();
+    adapterDisplay = s.value("adapterDisplay").toString();
     s.beginGroup("macs");
     for (const QString &k : s.childKeys()) macs[k] = s.value(k).toString();
     s.endGroup();
@@ -50,6 +51,7 @@ void AppState::save()
 {
     QSettings s("sdv-qt", "sdv-qt");
     s.setValue("adapter", adapterName);
+    s.setValue("adapterDisplay", adapterDisplay);
     s.beginGroup("macs");
     for (auto it = macs.cbegin(); it != macs.cend(); ++it) s.setValue(it.key(), it.value());
     s.endGroup();

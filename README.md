@@ -1,15 +1,15 @@
 # sdv-qt (Qt 6)
 
 Software diagnostik ZCU/VCU via raw Ethernet (EtherType 0x88B5). Migrasi dari versi WPF.
-Data Logging juga merekam payload VCU `Steer Remote Raw` dan `Throttle Remote Raw`
-dari frame logger, beserta nilai map-nya.
-Data List menampilkan `Steer Remote Raw`, `Throttle Remote Raw`, serta nilai map/interpolasi
-steer dan throttle dari input remote VCU.
+Data Logging dan Data List mengambil `Steer Remote Raw` dan `Throttle Remote Raw`
+langsung dari payload frame logger VCU, serta menampilkan nilai map sesuai konfigurasi
+interpolasi VCU.
 
 ## Halaman
-- **Setup Configuration**: pilih adapter, atur MAC tiap device, Test Connection. Pengaturan disimpan (QSettings).
+- **Data List**: halaman yang dibuka langsung saat aplikasi dimulai.
+- **Setup Configuration**: pilih adapter, atur MAC tiap device, Test Connection. Pengaturan disimpan (QSettings) dan dapat dibuka dari menu Setup.
 - **Data List**: baris = parameter, kolom = corner (FL, FR, RL, RR), refresh 10x per detik.
-- **Graph**: jendela bergulir 60 detik, sumbu X = jam, pilih parameter dan corner.
+- **Graph**: sementara dinonaktifkan.
 
 ## Build (Linux / embedded Linux)
     sudo apt install cmake g++ qt6-base-dev libqt6charts6-dev libpcap-dev

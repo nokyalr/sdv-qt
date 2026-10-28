@@ -94,7 +94,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     };
 
     addMenu("Data List",    0); 
-    addMenu("Graph",        1);
+    addMenu("Graph",       -1);
     addMenu("Data Logging", 2);
     addMenu("Active Test",  -1);
     addMenu("Configuration", -1);

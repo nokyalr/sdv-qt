@@ -147,10 +147,8 @@ void RawEthMonitor::handlePacket(const unsigned char *data, int len)
         VcuTelemetry vcu;
         vcu.steerRemoteRaw = qFromLittleEndian<quint32>(data + 14);
         vcu.throttleRemoteRaw = qFromLittleEndian<quint32>(data + 18);
-        vcu.steerRemoteMap = (static_cast<double>(vcu.steerRemoteRaw) - 1000.0)
-                             * (-450.0 - 450.0) / (2217.0 - 1000.0) + 450.0;
-        vcu.throttleRemoteMap = (static_cast<double>(vcu.throttleRemoteRaw) - 1003.0)
-                                * 200.0 / (2002.0 - 1003.0);
+        vcu.steerRemoteMap = mapVcuSteer(vcu.steerRemoteRaw);
+        vcu.throttleRemoteMap = mapVcuThrottle(vcu.throttleRemoteRaw);
         vcu.timeMs = now;
         m_latestVcu[src] = vcu;
     }

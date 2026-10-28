@@ -38,29 +38,30 @@ int main(int argc, char *argv[])
         "border-radius:4px;padding:3px 8px;}"
         "QToolButton:hover{background:palette(midlight);}");
 
-    // SetupWindow dibuat di heap agar bisa di-show/hide berkali-kali
-    auto *setup = new SetupWindow;
-    MainWindow *main = nullptr;
+    AppState::instance().load();
+    AppState::instance().monitor.setVcuMac(AppState::instance().vcuMac());
 
-    // Setup → MainWindow
-    QObject::connect(setup, &SetupWindow::continueRequested, [&] {
-        if (!main) {
-            main = new MainWindow;
-            main->setAttribute(Qt::WA_DeleteOnClose, false);  // jangan hapus, bisa dibuka lagi
+    auto *main = new MainWindow;
+    main->setAttribute(Qt::WA_DeleteOnClose, false);
+    SetupWindow *setup = nullptr;
 
-            // MainWindow → Setup (tombol "Setup")
-            QObject::connect(main, &MainWindow::setupRequested, [&] {
-                main->hide();
-                setup->show();
-                setup->raise();
-                setup->activateWindow();
+    QObject::connect(main, &MainWindow::setupRequested, [&] {
+        if (!setup) {
+            setup = new SetupWindow;
+            QObject::connect(setup, &SetupWindow::continueRequested, [&] {
+                main->show();
+                main->raise();
+                main->activateWindow();
+                setup->close();
             });
         }
-        main->show();
-        setup->close();
+        main->hide();
+        setup->show();
+        setup->raise();
+        setup->activateWindow();
     });
 
-    setup->show();
+    main->show();
     int rc = a.exec();
 
     AppState::instance().monitor.stop();

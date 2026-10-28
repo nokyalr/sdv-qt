@@ -29,7 +29,7 @@ DataListPage::DataListPage(QWidget *parent) : QWidget(parent)
     constexpr int remoteRows = 4;
     m_table = new QTableWidget(params.size() + 1 + remoteRows, 7);
     m_table->setHorizontalHeaderLabels(
-        {"Parameter", "Unit", "ZCU FL", "ZCU FR", "ZCU RL", "ZCU RR", "Remote"});
+        {"Parameter", "Unit", "ZCU FL", "ZCU FR", "ZCU RL", "ZCU RR", "VCU"});
     m_table->verticalHeader()->setVisible(false);
     m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_table->setSelectionMode(QAbstractItemView::NoSelection);
