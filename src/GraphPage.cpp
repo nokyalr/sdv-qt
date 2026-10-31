@@ -192,11 +192,21 @@ void GraphPanel::clearData()
         m_points[i].clear();
         m_series[i]->clear();
     }
+    m_lastTickMs = 0;
 }
 
 void GraphPanel::tick(qint64 nowMs, bool paused)
 {
-    if (paused) return;
+    if (paused) {
+        m_lastTickMs = nowMs;
+        return;
+    }
+
+    const qint64 elapsedMs = m_lastTickMs > 0
+        ? std::clamp(nowMs - m_lastTickMs, qint64(0), qint64(500))
+        : 0;
+    m_lastTickMs = nowMs;
+    const double shiftSec = elapsedMs * kScrollSpeed / 1000.0;
 
     auto &app             = AppState::instance();
     const int paramIndex = m_paramBox->currentIndex();
@@ -235,8 +245,7 @@ void GraphPanel::tick(qint64 nowMs, bool paused)
             m_points[i].append(QPointF(0.0, p->value(*t)));
         }
 
-        // Geser semua titik ke kiri dan buang yang sudah di luar jendela 60 s
-        const double shiftSec = 0.1;   // 100 ms per tick
+        // Geser berdasarkan waktu nyata agar timer yang terlambat tidak memperlambat grafik.
         int drop = 0;
         for (auto &pt : m_points[i]) {
             pt.rx() -= shiftSec;
@@ -309,20 +318,13 @@ GraphPage::GraphPage(QWidget *parent) : QWidget(parent)
 
     // Header: Judul + Kontrol Global (Pause & Clear All)
     auto *headerLayout = new QHBoxLayout;
-    auto *title = new QLabel("Graph");
-    QFont f = title->font();
-    f.setPointSize(f.pointSize() + 5);
-    f.setBold(true);
-    title->setFont(f);
-    headerLayout->addWidget(title);
-
     headerLayout->addStretch(1);
 
     m_pauseChk = new QCheckBox("Pause");
     headerLayout->addWidget(m_pauseChk);
 
     auto *clearBtn = new QPushButton("Clear All");
-    clearBtn->setFixedWidth(80);
+    clearBtn->setFixedWidth(100);
     connect(clearBtn, &QPushButton::clicked, this, [this] {
         for (int i = 0; i < 2; ++i)
             m_panel[i]->clearData();
@@ -357,7 +359,7 @@ GraphPage::GraphPage(QWidget *parent) : QWidget(parent)
     // Timer bersama
     m_timer = new QTimer(this);
     connect(m_timer, &QTimer::timeout, this, &GraphPage::tick);
-    m_timer->start(100);
+    m_timer->start(50);
 }
 
 void GraphPage::tick()

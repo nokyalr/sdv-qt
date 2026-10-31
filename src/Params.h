@@ -17,18 +17,20 @@ struct Param {
 inline const QVector<Param> &parameters()
 {
     static const QVector<Param> p = {
-        {"Current Ref",     "A",   1, [](const ZcuTelemetry &t) { return t.currentRef; }, [](const ZcuTelemetry &) { return true; }},
-        {"Motor Current",   "A",   1, [](const ZcuTelemetry &t) { return t.currentMotor; }, [](const ZcuTelemetry &) { return true; }},
-        {"ERPM",            "rpm", 0, [](const ZcuTelemetry &t) { return double(t.erpm); }, [](const ZcuTelemetry &) { return true; }},
-        {"Duty Cycle",      "%",   1, [](const ZcuTelemetry &t) { return t.duty * 100.0; }, [](const ZcuTelemetry &) { return true; }},
-        {"Battery Current", "A",   1, [](const ZcuTelemetry &t) { return t.currentIn; }, [](const ZcuTelemetry &) { return true; }},
-        {"Battery Voltage", "V",   1, [](const ZcuTelemetry &t) { return t.vin; }, [](const ZcuTelemetry &) { return true; }},
-        {"Steer Target",    "°",   2, [](const ZcuTelemetry &t) { return t.steerIn; }, [](const ZcuTelemetry &) { return true; }},
-        {"Steer Actual",    "°",   2, [](const ZcuTelemetry &t) { return t.steerActual; }, [](const ZcuTelemetry &) { return true; }},
-        {"Servo Stretch",   "",    0, [](const ZcuTelemetry &t) { return t.steerStretch; }, [](const ZcuTelemetry &t) { return t.steerTelemetryValid & 0x01; }},
-        {"Servo Speed",     "",    0, [](const ZcuTelemetry &t) { return t.steerSpeed; }, [](const ZcuTelemetry &t) { return t.steerTelemetryValid & 0x02; }},
-        {"Servo Current",   "",    0, [](const ZcuTelemetry &t) { return t.steerCurrent; }, [](const ZcuTelemetry &t) { return t.steerTelemetryValid & 0x04; }},
-        {"Servo Temp Raw",  "",    0, [](const ZcuTelemetry &t) { return t.steerTemp; }, [](const ZcuTelemetry &t) { return t.steerTelemetryValid & 0x08; }},
+        {"Input Voltage",   "V",   2, [](const ZcuTelemetry &t) { return t.vin; }, [](const ZcuTelemetry &) { return true; }},
+        {"Input Current",   "A",   2, [](const ZcuTelemetry &t) { return t.currentIn; }, [](const ZcuTelemetry &) { return true; }},
+        {"Motor Current",   "A",   2, [](const ZcuTelemetry &t) { return t.currentMotor; }, [](const ZcuTelemetry &) { return true; }},
+        {"ERPM",            "rpm", 0, [](const ZcuTelemetry &t) { return t.erpm; }, [](const ZcuTelemetry &) { return true; }},
+        {"FET Temperature", "°C",  1, [](const ZcuTelemetry &t) { return t.tempFet; }, [](const ZcuTelemetry &) { return true; }},
+        {"Motor Temperature","°C", 1, [](const ZcuTelemetry &t) { return t.tempMotor; }, [](const ZcuTelemetry &) { return true; }},
+        {"Duty Cycle",      "%",   1, [](const ZcuTelemetry &t) { return t.duty; }, [](const ZcuTelemetry &) { return true; }},
+        {"Wh Used",         "Wh",  2, [](const ZcuTelemetry &t) { return t.whUsed; }, [](const ZcuTelemetry &) { return true; }},
+        {"Wh Charged",      "Wh",  2, [](const ZcuTelemetry &t) { return t.whCharged; }, [](const ZcuTelemetry &) { return true; }},
+        {"Steer",           "°",   2, [](const ZcuTelemetry &t) { return t.steer; }, [](const ZcuTelemetry &) { return true; }},
+        {"Servo Stretch",       "%",       1, [](const ZcuTelemetry &t) { return t.stretch; }, [](const ZcuTelemetry &) { return true; }},
+        {"Servo Speed",         "%",       1, [](const ZcuTelemetry &t) { return t.speed; }, [](const ZcuTelemetry &) { return true; }},
+        {"Servo Current Level", "% level", 1, [](const ZcuTelemetry &t) { return t.current; }, [](const ZcuTelemetry &) { return true; }},
+        {"Servo Heat Level",    "% heat",  1, [](const ZcuTelemetry &t) { return t.temp; }, [](const ZcuTelemetry &) { return true; }},
     };
     return p;
 }

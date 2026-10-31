@@ -3,6 +3,7 @@
 #include <QDateTime>
 #include <QMutexLocker>
 #include <QtEndian>
+#include <cstring>
 #include <pcap.h>
 
 namespace {
@@ -19,43 +20,36 @@ QString macToString(const unsigned char *p)
         .toUpper();
 }
 
-// Layout payload sdv_cornerv3 (mulai byte 14, packed, little-endian, 23 byte):
-//  0 current_ref   u16  (current_ref_A + 40)
-//  2 current_motor u16  (motor_current_A + 100) * 10
-//  4 erpm          u32  erpm + 30000
-//  8 duty_cycle    u16  (duty + 1.0) * 1000
-// 10 current_in    u16  (batt_current_A + 100) * 10
-// 12 v_in          u16  voltage_V * 10
-// 14 steer_in      u16  target_deg100 + 13498
-// 16 steer         u16  actual_deg100 + 13498
-// 18 steer_stretch u8
-// 19 steer_speed   u8
-// 20 steer_current u8
-// 21 steer_temp    u8
-// 22 telemetry_valid u8
+constexpr int kZonePayloadSize = 14 * int(sizeof(float));
+
 bool parse(const unsigned char *d, int len, const QString &mac, ZcuTelemetry &t)
 {
-    if (len < 14 + 23) return false;
+    static_assert(sizeof(float) == 4, "zone_data requires 32-bit floats");
+    if (len < 14 + kZonePayloadSize) return false;
     if (d[12] != 0x88 || d[13] != 0xB5) return false;
     const unsigned char *p = d + 14;
 
-    auto u16 = [&](int o) { return qFromLittleEndian<quint16>(p + o); };
-    auto u32 = [&](int o) { return qFromLittleEndian<quint32>(p + o); };
+    auto f32 = [&](int o) {
+        float value;
+        std::memcpy(&value, p + o, sizeof(value));
+        return static_cast<double>(value);
+    };
 
     t.mac = mac;
-    t.currentRef   = u16(0) - 40.0;                      // offset 40
-    t.currentMotor = u16(2) / 10.0 - 100.0;              // (val/10) - 100
-    t.erpm         = static_cast<int>(u32(4)) - 30000;   // offset 30000
-    t.duty         = u16(8) / 1000.0 - 1.0;              // (val/1000) - 1
-    t.currentIn    = u16(10) / 10.0 - 100.0;             // (val/10) - 100
-    t.vin          = u16(12) / 10.0;                      // val/10
-    t.steerIn      = (static_cast<int>(u16(14)) - 13498) / 100.0;  // deg
-    t.steerActual  = (static_cast<int>(u16(16)) - 13498) / 100.0;  // deg
-    t.steerStretch = p[18];
-    t.steerSpeed   = p[19];
-    t.steerCurrent = p[20];
-    t.steerTemp    = p[21];
-    t.steerTelemetryValid = p[22];
+    t.vin          = f32(0);
+    t.currentIn    = f32(4);
+    t.currentMotor = f32(8);
+    t.erpm         = f32(12);
+    t.tempFet      = f32(16);
+    t.tempMotor    = f32(20);
+    t.duty         = f32(24);
+    t.whUsed       = f32(28);
+    t.whCharged    = f32(32);
+    t.steer        = f32(36);
+    t.stretch      = f32(40);
+    t.speed        = f32(44);
+    t.current      = f32(48);
+    t.temp         = f32(52);
     t.timeMs = QDateTime::currentMSecsSinceEpoch();
     return true;
 }
@@ -136,21 +130,27 @@ void RawEthMonitor::handlePacket(const unsigned char *data, int len)
     const QString src = macToString(data + 6);
     const qint64 now = QDateTime::currentMSecsSinceEpoch();
 
-    ZcuTelemetry t;
-    const bool ok = parse(data, len, src, t);
-
     QMutexLocker lock(&m_mutex);
-    m_seen[src] = now;
-    if (ok && src != m_vcuMac) {
-        m_latest[src] = t;
-    } else if (src == m_vcuMac && len >= 14 + 8) {
+    if (src == m_vcuMac && len >= 14 + 16) {
         VcuTelemetry vcu;
         vcu.steerRemoteRaw = qFromLittleEndian<quint32>(data + 14);
         vcu.throttleRemoteRaw = qFromLittleEndian<quint32>(data + 18);
-        vcu.steerRemoteMap = mapVcuSteer(vcu.steerRemoteRaw);
-        vcu.throttleRemoteMap = mapVcuThrottle(vcu.throttleRemoteRaw);
+        float steerMap;
+        float throttleMap;
+        std::memcpy(&steerMap, data + 22, sizeof(steerMap));
+        std::memcpy(&throttleMap, data + 26, sizeof(throttleMap));
+        vcu.steerRemoteMap = static_cast<double>(steerMap);
+        vcu.throttleRemoteMap = static_cast<double>(throttleMap);
         vcu.timeMs = now;
+        m_seen[src] = now;
         m_latestVcu[src] = vcu;
+        return;
+    }
+
+    ZcuTelemetry t;
+    if (parse(data, len, src, t)) {
+        m_seen[src] = now;
+        m_latest[src] = t;
     }
 }
 
@@ -158,6 +158,8 @@ void RawEthMonitor::clearSeen()
 {
     QMutexLocker lock(&m_mutex);
     m_seen.clear();
+    m_latest.clear();
+    m_latestVcu.clear();
 }
 
 bool RawEthMonitor::wasSeen(const QString &mac) const

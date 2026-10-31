@@ -24,10 +24,15 @@ Pasang Qt 6 (Widgets + Charts), Npcap, dan Npcap SDK. Set `PCAP_ROOT` ke folder 
 ## Menambah parameter
 Tambah satu baris di `src/Params.h`; Data List dan Graph ikut otomatis.
 
-## Format paket (harus sama dengan `zone_data` di firmware, 23 byte, little-endian)
- 0 current_ref u16 (A + 40) | 2 current_motor u16 (A + 100) x10
- 4 erpm u32 (ERPM + 30000) | 8 duty_cycle u16 (duty + 1) x1000
-10 current_in u16 (A + 100) x10 | 12 v_in u16 (V x10)
-14 steer_in u16 (sudut target x100 + 13498) | 16 steer u16 (sudut aktual x100 + 13498)
-18 steer_stretch u8 | 19 steer_speed u8 | 20 steer_current u8
-21 steer_temp u8 | 22 telemetry_valid u8 (bit 0..3: stretch, speed, current, temp)
+## Format paket (harus sama dengan `zone_data` di firmware, 56 byte, little-endian)
+Payload berisi 14 nilai `float` IEEE-754 dalam urutan:
+`v_in`, `current_in`, `current_motor`, `erpm`, `temp_fet`, `temp_motor`,
+`duty_cycle` (persen), `wh_used`, `wh_charged`, `steer` (derajat),
+`stretch` (persen), `speed` (persen), `current` (persen, negatif = arah balik),
+dan `temp` (tingkat panas persen, 0 = dingin, 100 = panas).
+Nilai `steer` dihitung di firmware berdasarkan `config.h`: titik tengah selalu
+0 derajat, sisi kiri negatif, dan sisi kanan positif.
+
+Payload logger VCU berukuran 16 byte: `raw_steer` u32, `raw_speed` u32,
+`map_steer` float, dan `map_speed` float. Nilai map dibaca langsung dari VCU;
+Qt tidak melakukan mapping ulang.

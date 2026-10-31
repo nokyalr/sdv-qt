@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QFont>
 #include <QPalette>
 #include "AppState.h"
 #include "MainWindow.h"
@@ -8,6 +9,8 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     a.setStyle("Fusion");   // tampilan konsisten di semua platform
+    QFont appFont("Segoe UI", 16);
+    a.setFont(appFont);
 
     // --- Paksa Light Mode (abaikan tema OS dark) ---
     QPalette light;
@@ -49,19 +52,19 @@ int main(int argc, char *argv[])
         if (!setup) {
             setup = new SetupWindow;
             QObject::connect(setup, &SetupWindow::continueRequested, [&] {
-                main->show();
+                main->showFullScreen();
                 main->raise();
                 main->activateWindow();
                 setup->close();
             });
         }
         main->hide();
-        setup->show();
+        setup->showFullScreen();
         setup->raise();
         setup->activateWindow();
     });
 
-    main->show();
+    main->showFullScreen();
     int rc = a.exec();
 
     AppState::instance().monitor.stop();

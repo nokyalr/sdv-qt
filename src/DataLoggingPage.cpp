@@ -30,6 +30,8 @@
 namespace {
 constexpr int  kOfflineMs  = 500;
 constexpr int  kTickMs     = 100;   // tulis CSV tiap 100 ms (10 Hz)
+constexpr int  kPreviewFontSize = 16;
+constexpr int  kPreviewRowHeight = 42;
 
 QString defaultLogDirectory()
 {
@@ -54,14 +56,6 @@ DataLoggingPage::DataLoggingPage(QWidget *parent) : QWidget(parent)
     root->setContentsMargins(16, 16, 16, 16);
     root->setSpacing(10);
 
-    // ---- Judul ----
-    auto *title = new QLabel("Data Logging");
-    QFont tf = title->font();
-    tf.setPointSize(tf.pointSize() + 5);
-    tf.setBold(true);
-    title->setFont(tf);
-    root->addWidget(title);
-
     // ---- Group: File output ----
     auto *fileGroup = new QGroupBox("Output File");
     auto *fileLayout = new QHBoxLayout(fileGroup);
@@ -76,10 +70,10 @@ DataLoggingPage::DataLoggingPage(QWidget *parent) : QWidget(parent)
     const QString defPath = QDir(defaultLogDirectory()).filePath(fileName);
     m_pathEdit->setText(defPath);
 
-    m_browseBtn = new QPushButton("Browse…");
-    m_browseBtn->setFixedWidth(80);
+    m_browseBtn = new QPushButton("Browse");
+    m_browseBtn->setFixedWidth(100);
 
-    m_startBtn = new QPushButton("▶  Start");
+    m_startBtn = new QPushButton("▶ Start");
     m_startBtn->setFixedWidth(100);
     m_startBtn->setStyleSheet(
         "QPushButton{background:#2E9E55;color:white;border-radius:4px;padding:5px 10px;font-weight:bold;}"
@@ -124,6 +118,7 @@ DataLoggingPage::DataLoggingPage(QWidget *parent) : QWidget(parent)
 
     // ---- Group: Live preview ----
     auto *previewGroup = new QGroupBox("Live Preview");
+    previewGroup->setFont(QFont("Segoe UI", kPreviewFontSize));
     auto *previewLayout = new QVBoxLayout(previewGroup);
 
     const auto &params = parameters();
@@ -131,6 +126,7 @@ DataLoggingPage::DataLoggingPage(QWidget *parent) : QWidget(parent)
 
     // Baris = corner/VCU, kolom = device + parameter atau data VCU.
     m_preview = new QTableWidget(5, params.size() + 5);
+    m_preview->setFont(QFont("Segoe UI", kPreviewFontSize));
     QStringList headers;
     headers << "Corner";
     for (const Param &p : params)
@@ -142,6 +138,12 @@ DataLoggingPage::DataLoggingPage(QWidget *parent) : QWidget(parent)
     m_preview->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_preview->setSelectionMode(QAbstractItemView::NoSelection);
     m_preview->setAlternatingRowColors(true);
+    m_preview->setStyleSheet(
+        "QScrollBar:vertical { width: 36px; }"
+        "QScrollBar::handle:vertical { min-height: 48px; }"
+        "QScrollBar:horizontal { height: 36px; }"
+        "QScrollBar::handle:horizontal { min-width: 48px; }");
+    m_preview->horizontalHeader()->setFont(QFont("Segoe UI", kPreviewFontSize));
     m_preview->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     m_preview->horizontalHeader()->setStretchLastSection(true);
 
@@ -153,11 +155,12 @@ DataLoggingPage::DataLoggingPage(QWidget *parent) : QWidget(parent)
             it->setTextAlignment(Qt::AlignCenter);
             m_preview->setItem(r, c, it);
         }
+        m_preview->setRowHeight(r, kPreviewRowHeight);
     }
     previewLayout->addWidget(m_preview);
     root->addWidget(previewGroup, 1);
 
-    // ---- Koneksi ----
+    // ---- Konekaaaaaaasi ----
     connect(m_browseBtn, &QPushButton::clicked, this, &DataLoggingPage::browseFile);
     connect(m_startBtn,  &QPushButton::clicked, this, &DataLoggingPage::toggleLogging);
 

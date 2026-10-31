@@ -15,7 +15,7 @@
 SetupWindow::SetupWindow(QWidget *parent) : QWidget(parent)
 {
     setWindowTitle("Setup Configuration");
-    setFixedSize(440, 400);
+    setFixedSize(600, 520);
 
     AppState::instance().load();
 
@@ -67,7 +67,7 @@ SetupWindow::SetupWindow(QWidget *parent) : QWidget(parent)
         r.mac->setInputMask(">HH:HH:HH:HH:HH:HH;_");
         r.mac->setAlignment(Qt::AlignCenter);
         r.dot = new QLabel;
-        r.dot->setFixedSize(14, 14);
+        r.dot->setFixedSize(18, 18);
         r.text = new QLabel;
         r.text->setMinimumWidth(80);
 
@@ -75,7 +75,7 @@ SetupWindow::SetupWindow(QWidget *parent) : QWidget(parent)
         grid->addWidget(r.mac, i + 1, 1);
         grid->addWidget(r.dot, i + 1, 2);
         grid->addWidget(r.text, i + 1, 3);
-        grid->setRowMinimumHeight(i + 1, 38);
+        grid->setRowMinimumHeight(i + 1, 48);
     }
     root->addLayout(grid);
     root->addStretch(1);
@@ -88,6 +88,9 @@ SetupWindow::SetupWindow(QWidget *parent) : QWidget(parent)
     btnRow->addWidget(resetBtn);
     btnRow->addWidget(m_testBtn);
     btnRow->addWidget(saveBtn);
+    resetBtn->setMinimumHeight(44);
+    m_testBtn->setMinimumHeight(44);
+    saveBtn->setMinimumHeight(44);
     root->addLayout(btnRow);
 
     connect(refreshBtn, &QToolButton::clicked, this, &SetupWindow::refreshAdapters);

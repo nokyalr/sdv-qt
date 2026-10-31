@@ -4,7 +4,7 @@
 #include "DataLoggingPage.h"
 #include "GraphPage.h"
 
-#include <QAction>
+#include <QApplication>
 #include <QDateTime>
 #include <QFrame>
 #include <QHBoxLayout>
@@ -39,23 +39,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     root->setSpacing(0);
 
     // ----------------------------------------------------------------
-    // Menu bar atas: Setup
-    // ----------------------------------------------------------------
-    auto *actSetup = new QAction("Setup", this);
-    actSetup->setToolTip("Kembali ke jendela konfigurasi");
-    connect(actSetup, &QAction::triggered, this, &MainWindow::setupRequested);
-    menuBar()->addAction(actSetup);
-
-    auto *actSettings = new QAction("Settings", this);
-    actSettings->setToolTip("Pengaturan aplikasi");
-    actSettings->setEnabled(false);  // placeholder – belum diimplementasi
-    menuBar()->addAction(actSettings);
-
-    // ----------------------------------------------------------------
     // Sidebar kiri
     // ----------------------------------------------------------------
     auto *menu = new QWidget;
-    menu->setFixedWidth(160);
+    menu->setFixedWidth(220);
     menu->setObjectName("sideMenu");
     menu->setAttribute(Qt::WA_StyledBackground, true);
     menu->setStyleSheet("#sideMenu{background:palette(alternate-base);}");
@@ -94,11 +81,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     };
 
     addMenu("Data List",    0); 
-    addMenu("Graph",       -1);
+    addMenu("Graph",        1);
     addMenu("Data Logging", 2);
     addMenu("Active Test",  -1);
     addMenu("Configuration", -1);
     addMenu("DTC",          -1);
+    auto *setupButton = new QPushButton("Setup");
+    setupButton->setMinimumHeight(36);
+    connect(setupButton, &QPushButton::clicked, this, &MainWindow::setupRequested);
+    menuLayout->addWidget(setupButton);
+    auto *exitButton = new QPushButton("Exit");
+    exitButton->setMinimumHeight(36);
+    connect(exitButton, &QPushButton::clicked, this, [this] {
+        const auto result = QMessageBox::question(
+            this, "Confirm Exit", "Are you sure you want to exit?",
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+        if (result == QMessageBox::Yes) qApp->quit();
+    });
+    menuLayout->addWidget(exitButton);
     menuLayout->addStretch(1);
 
     // Fungsi highlight tombol aktif
@@ -153,9 +153,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     m_lblOnline     = new QLabel("0 / 4 ONLINE");
     m_lblDtc        = new QLabel("0 DTC");
     m_lblLastUpdate = new QLabel("Last Update: --:--:--");
+    m_lblAdapter->setFont(font());
+    m_lblOnline->setFont(font());
+    m_lblDtc->setFont(font());
+    m_lblLastUpdate->setFont(font());
 
     // Letakkan di status bar menggunakan widget kustom agar bisa diberi separator
     auto *sb = statusBar();
+    sb->setFont(font());
+    sb->setMinimumHeight(44);
     sb->addWidget(m_lblAdapter, 1);      // stretch=1 → dorong sisanya ke kanan
     sb->addPermanentWidget(makeSep());
     sb->addPermanentWidget(m_lblOnline);
@@ -192,7 +198,13 @@ void MainWindow::refreshStatus()
         }
     }
 
-    m_lblOnline->setText(QString("%1 / 4 ONLINE").arg(onlineCount));
+    const auto vcu = app.monitor.latestVcu(app.vcuMac());
+    if (vcu && (now - vcu->timeMs) < kOfflineMs) {
+        ++onlineCount;
+        if (vcu->timeMs > lastMs) lastMs = vcu->timeMs;
+    }
+
+    m_lblOnline->setText(QString("%1 / 5 ONLINE").arg(onlineCount));
     m_lblDtc->setText("0 DTC"); 
 
     if (lastMs > 0) {

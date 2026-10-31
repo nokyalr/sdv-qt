@@ -2,29 +2,12 @@
 
 #include <QtGlobal>
 
-// Field raw pertama dari payload logger_data_t VCU (little-endian).
+// Payload logger_data_t VCU (little-endian, packed, 16 bytes):
+// raw_steer u32, raw_speed u32, map_steer float, map_speed float.
 struct VcuTelemetry {
     quint32 steerRemoteRaw = 0;    // pulse steering (us)
     quint32 throttleRemoteRaw = 0; // pulse throttle (us)
-    double steerRemoteMap = 0;
-    double throttleRemoteMap = 0;
+    double steerRemoteMap = 0;    // nilai map_steer dari VCU
+    double throttleRemoteMap = 0; // nilai map_speed dari VCU
     qint64 timeMs = 0;   // waktu diterima (ms sejak epoch)
 };
-
-inline double interpolateVcuInput(double value, double inMin, double inMid, double inMax,
-                                  double outMin, double outMid, double outMax)
-{
-    if (value <= inMid)
-        return (value - inMin) * (outMid - outMin) / (inMid - inMin) + outMin;
-    return (value - inMid) * (outMax - outMid) / (inMax - inMid) + outMid;
-}
-
-inline double mapVcuSteer(double value)
-{
-    return interpolateVcuInput(value, 1140, 1630, 2004, 450, 0, -450);
-}
-
-inline double mapVcuThrottle(double value)
-{
-    return interpolateVcuInput(value, 1003, 1521, 2002, 0, 100, 200);
-}
