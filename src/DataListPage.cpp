@@ -153,7 +153,7 @@ void DataListPage::refresh()
                                          QString::number(vcu->steerRemoteRaw),
                                          QString::number(vcu->throttleRemoteRaw),
                                          QString::number(vcu->steerRemoteMap, 'f', 2),
-                                         QString::number(vcu->throttleRemoteMap, 'f', 2)}
+                                         QString::number(vcu->throttleRemoteSigned(), 'f', 2)}
                                    : QStringList{"-", "-", "-", "-"};
     for (int i = 0; i < values.size(); ++i) {
         auto *value = m_table->item(kRemoteStartRow + i, 2);

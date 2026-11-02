@@ -237,7 +237,7 @@ void GraphPanel::tick(qint64 nowMs, bool paused)
                 case 0: value = vcu->steerRemoteRaw; break;
                 case 1: value = vcu->steerRemoteMap; break;
                 case 2: value = vcu->throttleRemoteRaw; break;
-                case 3: value = vcu->throttleRemoteMap; break;
+                case 3: value = vcu->throttleRemoteSigned(); break;
                 }
                 m_points[i].append(QPointF(0.0, value));
             }

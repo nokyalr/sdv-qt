@@ -35,4 +35,5 @@ Nilai `steer` dihitung di firmware berdasarkan `config.h`: titik tengah selalu
 
 Payload logger VCU berukuran 16 byte: `raw_steer` u32, `raw_speed` u32,
 `map_steer` float, dan `map_speed` float. Nilai map dibaca langsung dari VCU;
-Qt tidak melakukan mapping ulang.
+untuk throttle, Qt mengonversi rentang VCU 0..200 menjadi -100..100
+dengan titik tengah 100 menjadi 0.

@@ -268,7 +268,7 @@ void DataLoggingPage::writeRow(qint64 nowMs)
             ts << ",";
         ts << "," << vcu->steerRemoteRaw << "," << vcu->throttleRemoteRaw
            << "," << QString::number(vcu->steerRemoteMap, 'f', 2)
-           << "," << QString::number(vcu->throttleRemoteMap, 'f', 2) << "\n";
+           << "," << QString::number(vcu->throttleRemoteSigned(), 'f', 2) << "\n";
         ++m_rowCount;
     }
 }
@@ -308,7 +308,7 @@ void DataLoggingPage::tick()
     m_preview->item(4, params.size() + 3)->setText(
         vcuOnline ? QString::number(vcu->steerRemoteMap, 'f', 2) : "-");
     m_preview->item(4, params.size() + 4)->setText(
-        vcuOnline ? QString::number(vcu->throttleRemoteMap, 'f', 2) : "-");
+        vcuOnline ? QString::number(vcu->throttleRemoteSigned(), 'f', 2) : "-");
 
     // --- Tulis ke CSV jika sedang logging ---
     if (m_logging) {
